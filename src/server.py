@@ -4,7 +4,7 @@ import traceback
 from mcp.server.fastmcp import FastMCP
 
 from lifespan.context import app_lifespan
-from prompts.entry_prompt import kolada_entry_point
+from prompts.entry_prompt import riksbank_entry_point
 from tools.comparison_tools import compare_kpis  # type: ignore[Context]
 from tools.data_tools import (
     analyze_kpi_across_municipalities,  # type: ignore[Context]
@@ -17,11 +17,17 @@ from tools.metadata_tools import (
     list_operating_areas,  # type: ignore[Context]
     search_kpis,  # type: ignore[Context]
 )
+from tools.riksbank_tools import (
+    list_interest_rate_types,  # type: ignore[Context]
+    get_calendar_days,  # type: ignore[Context]
+    check_is_business_day,  # type: ignore[Context]
+    get_next_business_days,  # type: ignore[Context]
+)
 
 # Instantiate FastMCP
-mcp: FastMCP = FastMCP("KoladaServer", lifespan=app_lifespan)
+mcp: FastMCP = FastMCP("RiksbankMCPServer", lifespan=app_lifespan)
 
-# Register all tool functions
+# Register legacy Kolada tools (to be deprecated)
 mcp.tool()(list_operating_areas)  # type: ignore[Context]
 mcp.tool()(get_kpis_by_operating_area)  # type: ignore[Context]
 mcp.tool()(get_kpi_metadata)  # type: ignore[Context]
@@ -32,8 +38,14 @@ mcp.tool()(compare_kpis)  # type: ignore[Context]
 mcp.tool()(list_municipalities)  # type: ignore[Context]
 mcp.tool()(filter_municipalities_by_kpi)  # type: ignore[Context]
 
+# Register Riksbank tools
+mcp.tool()(list_interest_rate_types)  # type: ignore[Context]
+mcp.tool()(get_calendar_days)  # type: ignore[Context]
+mcp.tool()(check_is_business_day)  # type: ignore[Context]
+mcp.tool()(get_next_business_days)  # type: ignore[Context]
+
 # Register the prompt
-mcp.prompt()(kolada_entry_point)
+mcp.prompt()(riksbank_entry_point)
 
 if __name__ == "__main__":
     print("[Kolada MCP Main] Script starting...", file=sys.stderr)
