@@ -3,9 +3,9 @@ from typing import Optional, Dict, Any, List
 
 from mcp.server.fastmcp.server import Context
 
-from src.models.types import InterestRateType
-from src.services.riksbank_api import riksbank_api
-from src.utils.context import safe_get_lifespan_context
+from models.types import InterestRateType
+from services.riksbank_api import riksbank_api
+from utils.context import safe_get_lifespan_context
 
 
 async def list_interest_rate_types(

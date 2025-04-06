@@ -33,6 +33,19 @@ class KoladaMunicipality(TypedDict, total=False):
     type: str
 
 
+class InterestRateType(TypedDict, total=False):
+    """
+    Represents a single Interest Rate Type from Riksbanken's TORA API.
+    Contains metadata about available interest rate data series.
+    """
+    
+    id: Required[str]  # The unique identifier for the interest rate type
+    name: str  # The human-readable name of the interest rate type
+    description: str  # A longer explanation of the interest rate type
+    category: str  # Category/classification of the interest rate (e.g., "Policy Rate", "Money Market")
+    date_range: dict[str, str]  # Available date range, e.g., {"from": "2020-01-01", "to": "2023-12-31"}
+
+
 class KoladaLifespanContext(TypedDict):
     """
     Data cached in the server's memory at startup ('lifespan_context').
@@ -52,3 +65,6 @@ class KoladaLifespanContext(TypedDict):
     sentence_model: SentenceTransformer  # The loaded embedding model
     kpi_embeddings: npt.NDArray[np.float32]  # The embeddings for all KPIs
     kpi_ids: list[str]  # KPI IDs in the same order as rows in kpi_embeddings
+    
+    # Riksbank data (optional)
+    interest_rate_types_cache: list[InterestRateType]  # Optional cached interest rate types
