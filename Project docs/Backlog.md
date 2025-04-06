@@ -54,4 +54,5 @@ The following sections list all stories, organized by feature. Each story is tra
 ### Testing Infrastructure
 - STORY-022: Create unit test infrastructure
 - STORY-023: Implement integration tests with Riksbanken API
-- STORY-024: Create mocked responses for tests 
+- STORY-024: Create mocked responses for tests
+- STORY-025: Add tests for fetch_data_from_riksbank function 
