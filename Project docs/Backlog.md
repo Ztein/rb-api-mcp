@@ -19,7 +19,7 @@ The following sections list all stories, organized by feature. Each story is tra
 - ✅ STORY-002: Create token caching and auto-refresh mechanism
 
 ### API Integration Layer
-- 🔄 STORY-003: Create base API service for Riksbanken
+- ✅ STORY-003: Create base API service for Riksbanken
 - STORY-004: Implement SWEA API integration
 - STORY-005: Implement TORA API integration
 
