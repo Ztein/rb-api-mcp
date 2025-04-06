@@ -1,9 +1,10 @@
 import json
 import sys
 import traceback
-from typing import Any
+from typing import Any, Dict, Optional, List
 
 import httpx
+from src.services.riksbank_api import riksbank_api
 
 
 async def fetch_data_from_kolada(url: str) -> dict[str, Any]:
@@ -50,3 +51,92 @@ async def fetch_data_from_kolada(url: str) -> dict[str, Any]:
         "count": len(combined_values),
         "values": combined_values,
     }
+
+
+async def fetch_data_from_riksbank(
+    endpoint: str,
+    api_type: str = "swea",
+    method: str = "GET",
+    params: Optional[Dict[str, Any]] = None,
+    data: Optional[Dict[str, Any]] = None,
+    max_retries: int = 3
+) -> Dict[str, Any]:
+    """
+    Helper function to fetch data from Riksbanken APIs with consistent error handling.
+    Supports both SWEA and TORA APIs, with automatic pagination where available.
+    
+    Args:
+        endpoint: API endpoint path without base URL
+        api_type: API type to use ('swea' or 'tora')
+        method: HTTP method ('GET' or 'POST')
+        params: Query parameters for the request
+        data: JSON body data for POST requests
+        max_retries: Maximum number of retry attempts for transient errors
+        
+    Returns:
+        Dict containing combined response data from all pages or error information
+    """
+    print(f"[Riksbank MCP] Fetching from {api_type.upper()} API: {endpoint}", file=sys.stderr)
+    
+    # Use the appropriate method based on the requested HTTP method
+    if method.upper() == "GET":
+        response = await riksbank_api.get(
+            endpoint=endpoint,
+            api_type=api_type,
+            params=params,
+            max_retries=max_retries
+        )
+    elif method.upper() == "POST":
+        if data is None:
+            data = {}
+        response = await riksbank_api.post(
+            endpoint=endpoint,
+            api_type=api_type,
+            data=data,
+            params=params,
+            max_retries=max_retries
+        )
+    else:
+        return {
+            "error": f"Unsupported HTTP method: {method}",
+            "details": "Only GET and POST methods are supported",
+            "endpoint": endpoint
+        }
+    
+    # Check for errors in the response
+    if "error" in response:
+        return response
+    
+    # Handle pagination if available (similar to Kolada API)
+    # Note: This assumes Riksbank API uses a similar pagination approach
+    if isinstance(response, dict) and "values" in response:
+        combined_values: List[Dict[str, Any]] = response.get("values", [])
+        next_page = response.get("next_page")
+        
+        # If there's a next page, recursively fetch it and combine the results
+        if next_page:
+            print(f"[Riksbank MCP] Fetching next page: {next_page}", file=sys.stderr)
+            # For simplicity, we'll assume next_page is a full URL that needs to be parsed
+            # In practice, you may need to adjust this based on Riksbank's API structure
+            next_params = params.copy() if params else {}
+            next_params.update({"page": next_page})
+            
+            next_response = await fetch_data_from_riksbank(
+                endpoint=endpoint,
+                api_type=api_type,
+                method=method,
+                params=next_params,
+                data=data,
+                max_retries=max_retries
+            )
+            
+            if "error" not in next_response and "values" in next_response:
+                combined_values.extend(next_response.get("values", []))
+            
+        return {
+            "count": len(combined_values),
+            "values": combined_values
+        }
+    
+    # If no pagination is used, just return the response as is
+    return response
